@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" class="has-background-light">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central WOOC</title>
+    <link rel="stylesheet" href="bulma.css" />
+
+    <style>
+        .m-auto{
+            margin: auto;
+        }
+
+        footer {
+        	position: absolute;
+	        bottom: 10px;
+	        margin-left: 49vw;
+        }
+    </style>
+</head>
+<body class="has-text-centered">
+    <header class="is-size-1">
+        <span class="has-text-weight-bold">WOOC</span><br /><i>Central</i>
+    </header>
+    <hr />
+
+    <table class="table m-auto ">
+        <thead>
+            <tr>
+                <th>#</th><th>Nombre</th><th>Código</th><th>Precio</th><th>Disponible</th><th>Editar</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>+</th>
+                <th><input type="text" id="nombre" class="input is-small" /></th>
+                <th><input type="text" id="cod" class="input is-small" /></th>
+                <th><input type="number" id="precio" class="input is-small" /></th>
+                <th><input type="checkbox" id="disponible" class="" /></th>
+                <th><button class="button is-primary is-small m-1" onclick="agregar()">Agregar</button></th>
+            </tr>
+        </tfoot>
+        <tbody id="tabla"></tbody>
+    </table>
+
+    <footer class="is-size-7 is-italic">HFBK</footer>
+
+    <script>
+        const init = async function(){
+            tabla.innerHTML = null;
+            nombre.value = null;
+            cod.value = null;
+            precio.value = null;
+
+            let data = await fetch('api.php?token=123');
+                data = (data.status === 200)? await data.json() : [];
+            
+            for(i=0; i<data.length; i++){
+                let btn_editarprecio = document.createElement('button');
+                    btn_editarprecio.data = data[i];
+                    btn_editarprecio.innerText = 'Precio';
+                    btn_editarprecio.classList.add('button', 'is-info', 'is-small', 'm-1');
+                    btn_editarprecio.onclick = async function(e){
+                        let nuevo = prompt('Escriba el nuevo precio', e.target.data.precio);
+                        if(nuevo === null || nuevo === ''){ return; }
+                        if(isNaN(nuevo)){ alert('Nuevo precio incorrecto'); return; }
+                        
+                        await fetch('api.php?token=123&put&cod='+e.target.data.cod+'&precio='+nuevo);
+                        await init();
+                    }
+                
+                let btn_editardisponible = document.createElement('button');
+                    btn_editardisponible.data = data[i];
+                    btn_editardisponible.innerText = 'Disponibilidad';
+                    btn_editardisponible.classList.add('button', 'is-info', 'is-small', 'm-1');
+                    btn_editardisponible.onclick = async function(e){
+                        nuevo = !e.target.data.disponible? 1 : 0;
+                        await fetch('api.php?token=123&put&cod='+e.target.data.cod+'&disponible='+nuevo);
+                        await init();
+                    }
+
+                let btn_eliminar = document.createElement('button');
+                    btn_eliminar.data = data[i];
+                    btn_eliminar.innerText = 'Eliminar';
+                    btn_eliminar.classList.add('button', 'is-danger', 'is-small', 'm-1');
+                    btn_eliminar.onclick = async function(e){
+                        await fetch('api.php?token=123&delete&cod='+e.target.data.cod);
+                        await init();
+                    }
+
+                let fila = tabla.insertRow();
+                    fila.insertCell(0).innerText = tabla.rows.length;
+                    fila.insertCell(1).innerText = data[i].nombre;
+                    fila.insertCell(2).innerText = data[i].cod;
+                    fila.insertCell(3).innerText = '$ '+data[i].precio;
+                    fila.insertCell(4).innerText = data[i].disponible? '✓' : '✗';
+                    let opciones = fila.insertCell(5);
+                        opciones.append(btn_editarprecio);
+                        opciones.append(btn_editardisponible);
+                        opciones.append(btn_eliminar);
+            }
+        }
+
+        const agregar = async function(){
+            isNaN(precio.value)? alert('El precio debe ser un número entero (por ahora)') : null;
+
+            let envio = {};
+                envio.cod = encodeURI(cod.value);
+                envio.nombre = encodeURI(nombre.value);
+                envio.precio = parseInt(precio.value);
+                envio.disponible = disponible.checked? 1 : 0;
+
+            await fetch('api.php?&token=123&post&cod='+envio.cod+'&nombre='+envio.nombre+'&precio='+envio.precio+'&disponible='+envio.disponible);
+            await init();
+        }
+
+        init();
+    </script>
+</body>
+</html>
