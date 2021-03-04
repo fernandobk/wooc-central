@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Tienda WOOC</title>
+    <style>
+        body{
+            width: 50%;
+            margin: auto;
+            margin-bottom: 200px; 
+            line-height: 250%;
+        }
+        pre{
+            width: 60%;
+            margin:auto;
+            padding: 10px;
+            background-color: black; 
+            color: wheat;
+            line-height: 150%;
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 0 10px 0 10px;
+        }
+        #titulo{
+            text-align: center; 
+            margin-bottom: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div  id="titulo">
+            <h1>Tienda WOOC</h1>
+            <h3><i>Tienda de ejemplo</i></h3>
+        </div>
+
+        <div>
+            <strong>Instrucciones:</strong>
+            <ol>
+                <li>Abrir la tienda 1 en una pestaña. Revisar los productos y precios.</li>
+                <li>Abrir la tienda 2 en otra pestaña. Revisar los productos y precios.</li>
+                <li>Abrir el panel de control en otra pestaña</li>
+                <li>En el panel de control cambiar precios y disponibilid de los productos que aparecen en las tiendas.</li>
+                <li>Recargar las pestañas de las tiendas y corroborar que el precios y disponibilidad sean los mismos que en el panel de control</li>
+            </ol>
+            <hr />
+            <strong>Enlaces</strong>
+            <ul>
+                <li><a href="http://wooc1.html-5.me/tienda/" target="_blank">Tienda 1</a></li>
+                <li><a href="http://wooc2.html-5.me/tienda/" target="_blank">Tienda 2</a></li>
+                <li><a href="https://hfbk.000webhostapp.com/wooc-central/" target="_blank">Control central</a></li>
+                <li><a href="https://github.com/fernandobk/wooc-central" target="_blank">Código fuente</a></li>
+            </ul>
+            <hr />
+            <strong>Notas</strong>
+            <ul>
+                <li>Cada tienda tiene su propia base de datos y sus archivos simulando dos tiendas distintas.</li>
+                <li>Usuario y clave de acceso a <i>WP-Admin</i>: "wooc"</li>
+                <li>La API simula ser una API REST. El método se pasa por QS solamente para facilitar las pruebas.</li>
+                <li>El token de acceso a la API es "123" y se pasa por QS con el parámetro "token"</li>
+                <li>Cuando se hace una llamada a la API, esta siempre devuelve la lista de elementos de la base de datos.</li>
+                <li>Las respuestas de la API siempre son en JSON, a menos que no se pase el parámetro token. En tal caso es <i>HTTP STATUS 401</i></li>
+                <li>Los productos de la tienda DEBEN tener un <i>Campo personalizado</i> llamado "edicion_remota" con valor igual al codigo del producto en la base de datos central</li>
+                <li>El archivo <i>consulta_a_central.php</i> debe ser requerido por el archivo <i>/index.php</i> de WordPress:</li>
+                    <pre>
+define( 'WP_USE_THEMES', true );
+
+<strong>// Consultamos precios a central
+require 'consulta_a_central.php';</strong>
+
+/** Loads the WordPress Environment and Template */
+require __DIR__ . '/wp-blog-header.php';
+                    </pre>
+            </ul>
+            <hr />
+            <strong>API</strong>
+            <ul>
+                <li><i>URL base: https://hfbk.000webhostapp.com/wooc-central/api.php</i></li>
+                <li>
+                    <details>
+                        <summary>Obtener registros:</summary>
+                        <div>
+                            <i>https://hfbk.000webhostapp.com/wooc-central/api.php?token=123"</i><br />
+                            Respuesta: 200. JSON, Arreglo de objetos.<br />
+                            <pre>
+[
+    {
+        "cod":"central0001",
+        "nombre":"ssd", 
+        "precio":2700, 
+        "disponible":true 
+    } 
+]</pre>
+                        </div>
+                    </details>
+                </li>
+                <li>
+                    <details>
+                        <summary>Editar registro</summary>
+                        <div>
+                            <i>https://hfbk.000webhostapp.com/wooc-central/api.php?token=123&put&cod=central0001&precio=100&disponible=1</i>
+                            <table>
+                                <tr>
+                                    <td>token</td><td>Obligatorio</td><td>Cadena. Llave de acceso.</td>
+                                </tr>
+                                <tr>
+                                    <td>put</td><td>Obligatorio</td><td>Simula ser el método de la consulta a la API (<i>REQUEST_METHOD</i>)</td>
+                                </tr>
+                                <tr>
+                                    <td>cod</td><td>Obligatorio</td><td>Cadena. Identificador del item a modificar.</td>
+                                </tr>
+                                <tr>
+                                    <td>precio</td><td>Opcional</td><td>Número entero. Precio del producto a modificar.</td>
+                                </tr>
+                                <tr>
+                                    <td>disponible</td><td>Opcional</td><td>Número entero (0/1). Determina si el producto está disponible o no.</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </details>
+                </li>
+                <li>
+                    <details>
+                        <summary>Agregar registro</summary>
+                        <div>
+                            <i>https://hfbk.000webhostapp.com/wooc-central/api.php?token=123&post&cod=central0001&precio=100&disponible=1</i>
+                            <table>
+                                <tr>
+                                    <td>token</td><td>Obligatorio</td><td>Cadena. Llave de acceso.</td>
+                                </tr>
+                                <tr>
+                                    <td>post</td><td>Obligatorio</td><td>Simula ser el método de la consulta a la API (<i>REQUEST_METHOD</i>)</td>
+                                </tr>
+                                <tr>
+                                    <td>nombre</td><td>Obligatorio</td><td>Cadena. Nombre del producto solo para referencia humana</td>
+                                </tr>
+                                <tr>
+                                    <td>cod</td><td>Obligatorio</td><td>Cadena. Identificador único del item. No debe existir en la base de datos.</td>
+                                </tr>
+                                <tr>
+                                    <td>precio</td><td>Obligatorio</td><td>Número entero. Precio del producto.</td>
+                                </tr>
+                                <tr>
+                                    <td>disponible</td><td>Obligatorio</td><td>Número entero (0/1). Determina si el producto está disponible o no.</td>
+                                </tr>
+                            </table>
+                            <br />
+                            Si el codigo ingresado ya existe devuelve <i>HTTP STATUS 400</i>.
+                        </div>
+                    </details>
+                </li>
+            </ul>
+            <br />
+            
+        </div>
+    </div>
+</body>
+</html>
